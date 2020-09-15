@@ -1,3 +1,6 @@
+
+import streamlit as st
+
 import cv2
 import base64
 import numpy as np
@@ -23,45 +26,69 @@ def create_data_uri(img):
     mime = "image/jpeg"
     return "data:%s;base64,%s" % (mime, img_)
 
-app = Flask(__name__)
+def get_model():
 
-model = None
+    model = tf.keras.models.load_model('model')
 
-@app.route('/', methods = ['GET', 'POST'])
-def index():
+    return model
 
-    if request.method == 'GET':
+# return render_template('index.html', prediction=None, img=None)
 
-        global model
+st.set_option('deprecation.showfileUploaderEncoding', False)
 
-        if not model:
-            model = tf.keras.models.load_model('model')
+uploaded_file = st.file_uploader("Choose an eye picture", type="jpg")
 
-        return render_template('index.html', prediction=None, img=None)
+'# Eye detection'
 
-    if request.method == 'POST':
+if uploaded_file is not None:
 
-        # Handle request
-        img = request.files['file'].read()
+    data = uploaded_file
 
-        # A tiny bit of preprocessing
-        img = process_request_image(img)
+    st.write(data)
 
-        # Convert image to data URI so it can be displayed without being saved
-        uri = create_data_uri(img)
+    # Handle request
+    # img = request.files['file'].read()
 
-        # Convert to VGG16 input
-        img = cv2.resize(img, (224, 224))
-        img = np.reshape(img, [1, 224, 224, 3])
+    # A tiny bit of preprocessing
+    # img = process_request_image(img)
 
-        # Classify image
-        predictions = model.predict(img)
-        print(predictions[0])
-        a = list(predictions[0])
-        max_index = a.index(max(a))
-        print(max_index)
-        print(a[max_index])
-        classes = ['not sick', 'mild','serious', 'damaged', 'irreversible']
-        labels = classes[max_index]
+    # Convert image to data URI so it can be displayed without being saved
+    # uri = create_data_uri(img)
 
-        return render_template('index.html', prediction=labels, img=uri)
+    import cv2
+    import numpy as np
+
+    image_bytes = data.read()
+
+    st.image(image_bytes, caption='Le Wagon', use_column_width=False)
+
+    decoded = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), -1)
+
+    # your Pillow code
+    import io
+    from PIL import Image
+    img = np.array(Image.open(io.BytesIO(image_bytes)))
+
+
+
+
+    # Convert to VGG16 input
+    img = cv2.resize(img, (224, 224))
+
+    img = np.reshape(img, [1, 224, 224, 3])
+
+    model = get_model()
+
+    # Classify image
+    predictions = model.predict(img)
+    print(predictions[0])
+    a = list(predictions[0])
+    max_index = a.index(max(a))
+    print(max_index)
+    print(a[max_index])
+    classes = ['not sick', 'mild','serious', 'damaged', 'irreversible']
+    labels = classes[max_index]
+
+    labels
+
+    # return render_template('index.html', prediction=labels, img=uri)
