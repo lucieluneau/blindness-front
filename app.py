@@ -1,13 +1,8 @@
 
 import streamlit as st
-
 import cv2
-import base64
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.applications import VGG16
-from flask import Flask, request, render_template
-
 
 def crop_image(img):
     target_size = np.min(img.shape[0:2])
@@ -28,17 +23,22 @@ def create_data_uri(img):
 
 def get_model():
 
-    model = tf.keras.models.load_model('model')
+    model = tf.keras.models.load_model('/model')
 
     return model
 
+
+'# Blindness Detection'
 # return render_template('index.html', prediction=None, img=None)
 
 st.set_option('deprecation.showfileUploaderEncoding', False)
 
 uploaded_file = st.file_uploader("Choose an eye picture", type="jpg")
 
-'# Eye detection'
+
+st.sidebar.write('# Model used')
+
+
 
 if uploaded_file is not None:
 
@@ -86,9 +86,47 @@ if uploaded_file is not None:
     max_index = a.index(max(a))
     print(max_index)
     print(a[max_index])
-    classes = ['not sick', 'mild','serious', 'damaged', 'irreversible']
+    classes = ['not sick', 'Mild Nonproliferative', 'Moderate Nonproliferative','Severe Nonproliferative', 'Proliferative Diabetic']
     labels = classes[max_index]
 
-    labels
+    if max_index == 0:
+        st.markdown('# The retinopathy is at a stage: Non existant'
+'''
+> Your eyes are healthy
+
+
+''')
+        f'''Percentage of confidence :
+     {round(a[max_index]*100)} %'''
+    if max_index == 1:
+        st.markdown('# The retinopathy is at a stage: Mild Nonproliferative'
+'''
+> Microaneurysms occur.
+> They are small areas of balloon-like swelling in the retina's tiny blood vessels.''')
+        f'''Percentage of confidence :
+     {round(a[max_index]*100)} %'''
+
+
+    if max_index == 2:
+        st.markdown('# The retinopathy is at a stage: Moderate Nonproliferative'
+            '''
+> Blood vessels that nourish the retina are blocked.
+> Areas of the retina send signals to the body to grow new blood vessels for nourishment.''')
+        f'''Percentage of confidence :
+     {round(a[max_index]*100)} %'''
+
+    if max_index == 3:
+        st.markdown('''# The retinopathy is at a stage: Severe Nonproliferative
+
+> Many more blood vessels are blocked, depriving several areas of
+> The retina with their blood supply. ''')
+        f'''Percentage of confidence :
+     {round(a[max_index]*100)} %'''
+
+
+
+
+
+
 
     # return render_template('index.html', prediction=labels, img=uri)
